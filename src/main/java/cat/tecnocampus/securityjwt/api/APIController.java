@@ -1,12 +1,25 @@
 package cat.tecnocampus.securityjwt.api;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import cat.tecnocampus.securityjwt.domain.ERole;
+import cat.tecnocampus.securityjwt.domain.Role;
+import cat.tecnocampus.securityjwt.domain.UserLab;
+import cat.tecnocampus.securityjwt.persistence.RoleRepository;
+import cat.tecnocampus.securityjwt.persistence.UserLabRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
 @RestController
 public class APIController {
+
+    private final UserLabRepository userLabRepository;
+    private final RoleRepository roleRepository;
+
+    public APIController(UserLabRepository userLabRepository, RoleRepository roleRepository) {
+        this.userLabRepository = userLabRepository;
+        this.roleRepository = roleRepository;
+    }
 
     @GetMapping("/helloWorld")
     public String helloWorld() {
@@ -70,4 +83,12 @@ public class APIController {
     }
 
     // TODO 2 add a PostMapping to create a new user with a single role. The role must be ADMIN or USER or MODERATOR
+    @PostMapping("/createUser")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserLab createUser(@RequestParam String username, @RequestParam String email, @RequestParam String password, @RequestParam ERole role) {
+        UserLab user = new UserLab(username, email, password);
+        Role userRole = roleRepository.findByName(role.toString()).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        user.getRoles().add(userRole);
+        return userLabRepository.save(user);
+    }
 }

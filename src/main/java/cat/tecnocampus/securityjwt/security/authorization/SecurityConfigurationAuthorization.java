@@ -43,15 +43,17 @@ public class SecurityConfigurationAuthorization {
 
         return http
                 .cors(cors -> cors.disable())
-                .csrf(csrf -> csrf.disable()) //This is to disable the csrf protection. It is not needed for this project since the application is stateless (and we are using JWT)
+                .csrf(csrf -> csrf.disable()) // This is to disable the csrf protection. It is not needed for this project since the application is stateless (and we are using JWT)
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions
                         .sameOrigin()))   // This is to allow the h2-console to be used in the browser. It allows the browser to render the response in a frame.
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(WHITE_LIST_URL).permitAll();
                     auth.requestMatchers("/helloWorld").permitAll();
-                    auth.requestMatchers("/helloUser").access(hasScope("USER"));//.hasRole("USER");
+                    auth.requestMatchers("/helloUser").access(hasScope("USER"));
                     auth.requestMatchers("/helloAdmin").access(hasScope("ADMIN"));
                     auth.requestMatchers("/helloUserAdmin").access(hasAnyScope("USER", "ADMIN"));
+                    auth.requestMatchers("/moderator/**").hasRole("MODERATOR");
+                    auth.requestMatchers("/moderator/*/admin").hasAnyRole("ADMIN", "MODERATOR");
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
